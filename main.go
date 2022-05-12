@@ -34,7 +34,14 @@ func main() {
 				formatPaths = append(formatPaths, p)
 			}
 		}
+		if len(formatPaths) == 0 {
+			return c.Redirect("/admin")
+		}
 		if formatPaths[0] == "api" {
+			return c.Next()
+		}
+
+		if formatPaths[0] != "admin" {
 			return c.Next()
 		}
 		lastPath := formatPaths[len(formatPaths)-1]
@@ -80,6 +87,10 @@ func main() {
 	app.Use(AuthMiddleware)
 
 	api.Api(app)
+
+	app.Use(func(c *fiber.Ctx) error {
+		return c.Redirect("/admin")
+	})
 
 	app.Listen(":8080")
 

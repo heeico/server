@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  traefik:
+    image: traefik:v1.7-alpine
+    command:
+      - --api
+      - --docker
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/traefik.toml:/etc/traefik/traefik.toml:ro
+      - ./traefik/acme:/etc/traefik/acme
+    networks:
+      - HEEICO_SERVER
+
+  heeico_server:
+    image: hdydco_docs
+    build: .
+    networks:
+      - HEEICO_SERVER
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=heeico_server"
+      - "traefik.frontend.rule=Host:heeico.com"
+      - "traefik.port=8080"
+      - "traefik.docker.network=HEEICO_SERVER"
+
+networks:
+  HEEICO_SERVER:
