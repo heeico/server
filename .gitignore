@@ -1,0 +1,8 @@
+# local dev env
+tmp 
+.air.toml
+
+# local dev db
+url.sqlite
+
+.DS_Store
