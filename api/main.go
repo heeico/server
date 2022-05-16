@@ -9,4 +9,5 @@ func Api(app *fiber.App) {
 
 	api.AdminApi(app)
 	api.AuthApi(app)
+	api.TeamApi(app)
 }

@@ -15,6 +15,24 @@ func AdminApi(app *fiber.App) {
 	// admin operations
 	admin := app.Group("/api/v1/admin")
 
+	admin.Get("/dashboard", func(c *fiber.Ctx) error {
+		var totalLinks int64 = 0  // url shortener
+		var totalClicks int64 = 0 // url track
+
+		linkTrack := []model.TotalVisit{}
+
+		database.DB.Model(&model.URLShortener{}).Count(&totalLinks)
+		database.DB.Model(&model.URLTrack{}).Count(&totalClicks)
+		database.DB.Model(&model.URLTrack{}).Select("created_at, count(*) as total").Group("cast(created_at as date)").Find(&linkTrack)
+
+		return c.JSON(types.ResponseData{
+			"track":       linkTrack,
+			"totalLinks":  totalLinks,
+			"totalClicks": totalClicks,
+		})
+
+	})
+
 	admin.Post("/create-url", func(c *fiber.Ctx) error {
 		var urlShortener model.URLShortener
 		if err := c.BodyParser(&urlShortener); err != nil {
@@ -105,5 +123,45 @@ func AdminApi(app *fiber.App) {
 		user := model.User{}
 		database.DB.Where("id", userId).First(&user)
 		return c.JSON(user)
+	})
+
+	admin.Put("/update-profile", func(c *fiber.Ctx) error {
+		userId := c.Locals("userId")
+		if userId == nil {
+			c.SendStatus(http.StatusBadRequest)
+			return c.JSON(types.FailResponse{Status: false, Error: "user not valid"})
+		}
+		user := model.User{}
+		c.BodyParser(&user)
+		go database.DB.Model(&model.User{}).Where("id", userId).Update("name", user.Name).Update("email", user.Email)
+		return c.JSON(types.SuccessResponse{Status: true, Message: "Profile Updated"})
+	})
+
+	admin.Put("/update-profile-password", func(c *fiber.Ctx) error {
+		userId := c.Locals("userId")
+		if userId == nil {
+			c.SendStatus(http.StatusBadRequest)
+			return c.JSON(types.FailResponse{Status: false, Error: "user not valid"})
+		}
+		type PasswordInput struct {
+			OldPassword string `json:"oldPassword"`
+			NewPassword string `json:"newPassword"`
+		}
+		userPassword := PasswordInput{}
+		user := model.User{}
+		c.BodyParser(&userPassword)
+		oldUser := model.User{
+			Password: userPassword.OldPassword,
+		}
+		database.DB.Where("id", userId).First(&user)
+		e := oldUser.CheckPasswordHash(user.Password)
+		if e != nil {
+			c.SendStatus(http.StatusBadRequest)
+			return c.JSON(types.FailResponse{Status: false, Error: "password does not match"})
+		}
+		user.Password = userPassword.NewPassword
+		user.HashPassword()
+		go database.DB.Model(&model.User{}).Where("id", userId).Update("password", user.Password)
+		return c.JSON(types.SuccessResponse{Status: true, Message: "Profile Updated"})
 	})
 }

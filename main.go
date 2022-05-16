@@ -101,18 +101,14 @@ func main() {
 }
 
 func AuthMiddleware(c *fiber.Ctx) error {
-
 	skipPaths := []string{"/api/v1/admin/auth/register", "/api/v1/admin/auth/login"}
-
 	for _, val := range skipPaths {
 		if val == c.Path() {
 			return c.Next()
 		}
 	}
-
 	headers := c.GetReqHeaders()
 	authToken := headers["Authorization"]
-
 	if len(authToken) == 0 {
 		c.SendStatus(http.StatusUnauthorized)
 		return c.JSON(types.FailResponse{Status: false, Error: "Invalid auth token", Data: map[string]interface{}{"message": "Unauthorized access", "error": "Auth token not provided"}})

@@ -23,7 +23,7 @@ func AuthApi(app *fiber.App) {
 			return c.JSON(types.FailResponse{Status: false, Error: "Valid data not supplied"})
 		}
 		var userCount int64
-		database.DB.Model(&user).Count(&userCount)
+		database.DB.Model(&user).Where("email", user.Email).Count(&userCount)
 		if userCount > 0 {
 			c.SendStatus(http.StatusBadRequest)
 			return c.JSON(types.FailResponse{Status: false, Error: "User already registerted", Data: types.ResponseData{

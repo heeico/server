@@ -11,8 +11,8 @@ import (
 )
 
 type BaseModel struct {
-	ID        uint           `gorm:"primarykey" json:"id"`
-	CreatedAt time.Time      `json:"createdAt"`
+	ID        uint           `gorm:"primarykey" json:"id,omitempty"`
+	CreatedAt time.Time      `json:"createdAt,omitempty"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
@@ -39,10 +39,10 @@ type TotalVisit struct {
 
 type User struct {
 	BaseModel
-	Name     string `json:"name"`
-	Password string `json:"password"`
-	Email    string `json:"email" gorm:"unique"`
-	Role     string `json:"role"`
+	Name     string `json:"name,omitempty"`
+	Password string `json:"password,omitempty"`
+	Email    string `json:"email,omitempty" gorm:"unique"`
+	Role     string `json:"role,omitempty"`
 }
 
 func (u *User) HashPassword() {
