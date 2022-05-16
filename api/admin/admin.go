@@ -96,4 +96,14 @@ func AdminApi(app *fiber.App) {
 		return c.JSON(types.SuccessResponse{Message: "Link Updated", Status: true, Data: types.ResponseData{"updatedFields": urlShortener}})
 	})
 
+	admin.Get("/user-profile", func(c *fiber.Ctx) error {
+		userId := c.Locals("userId")
+		if userId == nil {
+			c.SendStatus(http.StatusBadRequest)
+			return c.JSON(types.FailResponse{Status: false, Error: "user not valid"})
+		}
+		user := model.User{}
+		database.DB.Where("id", userId).First(&user)
+		return c.JSON(user)
+	})
 }

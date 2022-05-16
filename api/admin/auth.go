@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -21,7 +22,16 @@ func AuthApi(app *fiber.App) {
 			c.SendStatus(http.StatusBadRequest)
 			return c.JSON(types.FailResponse{Status: false, Error: "Valid data not supplied"})
 		}
+		var userCount int64
+		database.DB.Model(&user).Count(&userCount)
+		if userCount > 0 {
+			c.SendStatus(http.StatusBadRequest)
+			return c.JSON(types.FailResponse{Status: false, Error: "User already registerted", Data: types.ResponseData{
+				"error": fmt.Sprintf("email address %s already registered", user.Email),
+			}})
+		}
 		user.HashPassword()
+		user.Role = types.TEAM
 		result := database.DB.Create(&user)
 		if result.Error != nil {
 			c.SendStatus(http.StatusInternalServerError)
@@ -53,7 +63,7 @@ func AuthApi(app *fiber.App) {
 			c.SendStatus(http.StatusBadRequest)
 			return c.JSON(types.FailResponse{Status: false, Error: "password does not match"})
 		}
-		token := user.GetAuthToken()
+		token := u.GetAuthToken()
 
 		return c.JSON(types.SuccessResponse{Status: true, Message: "Login Successfull", Data: map[string]interface{}{"token": token}})
 	})

@@ -18,9 +18,13 @@ import (
 	"github.com/iamrahultanwar/heeico/types"
 )
 
+func init() {
+	database.ConnectDB()
+	database.Init()
+}
+
 func main() {
 	app := fiber.New()
-	database.ConnectDB()
 
 	app.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
@@ -115,7 +119,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	}
 	userId, err := model.ValidateAuthToken(authToken)
 	c.Locals("role", "guest")
-	if err != nil {
+	if err == nil {
 		c.Locals("userId", userId)
 		c.Locals("role", "auth")
 	}

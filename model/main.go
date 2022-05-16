@@ -42,6 +42,7 @@ type User struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
 	Email    string `json:"email" gorm:"unique"`
+	Role     string `json:"role"`
 }
 
 func (u *User) HashPassword() {
@@ -70,6 +71,7 @@ func (u *User) GetAuthToken() string {
 	claims["ID"] = u.ID
 	claims["user"] = u.Email
 	claims["exp"] = time.Now().Add(time.Minute * 100).Unix()
+	claims["role"] = u.Role
 
 	tokenString, err := token.SignedString(hmacSampleSecret)
 
@@ -90,7 +92,7 @@ func ValidateAuthToken(tokenString string) (userId int64, err error) {
 	})
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userId := claims["userId"]
+		userId := claims["ID"]
 		if userId, ok := userId.(float64); ok {
 			return int64(userId), nil
 		}
