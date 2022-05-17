@@ -19,9 +19,9 @@ type Config struct {
 func GetConfig() Config {
 	config := Config{
 		Admin: Admin{
-			Name:     "Rahul Tanwar",
+			Name:     "Admin User",
 			Password: "password",
-			Email:    "mr.rahultanwar@gmail.com",
+			Email:    "admin@test.com",
 		},
 		Links: []LinkUrl{
 			{
